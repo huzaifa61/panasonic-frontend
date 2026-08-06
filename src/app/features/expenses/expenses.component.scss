@@ -1,0 +1,186 @@
+.expenses-page {
+  padding: 28px 36px 48px;
+  max-width: 1140px;
+  margin: 0 auto;
+}
+
+.page-header {
+  margin-bottom: 24px;
+}
+
+.header-subtitle {
+  margin: 2px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+}
+
+.form-card {
+  padding: 22px 24px;
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.form-card:hover {
+  transform: translateY(-4px) scale(1.008);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary);
+  z-index: 2;
+}
+
+.form-card h2 {
+  font-size: 15px;
+  transition: color 0.2s ease;
+}
+
+.form-card:hover h2 {
+  color: var(--color-primary);
+}
+
+.list-card {
+  overflow: hidden;
+}
+
+.list-card table {
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.section-heading {
+  padding: 18px 20px 4px;
+}
+
+.section-heading h3 {
+  font-size: 13px;
+  margin: 0;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+.filtered-total {
+  margin: 4px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-filter {
+  padding: 7px 10px;
+  font-size: 13px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--color-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+  flex: 1;
+  min-width: 160px;
+}
+
+label.full-width {
+  width: 100%;
+  margin-bottom: 18px;
+}
+
+.category-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.store-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.bulk-upload-card {
+  padding: 18px 22px;
+  margin-bottom: 24px;
+}
+
+.bulk-upload-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.bulk-upload-row h3 {
+  font-size: 14px;
+  margin: 0 0 4px;
+  color: var(--color-text);
+}
+
+.bulk-upload-row .hint {
+  margin: 0;
+  font-size: 12.5px;
+  max-width: 480px;
+}
+
+.bulk-upload-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+// Overrides the page-wide bare `label` rule (flex-column, uppercase, faint color)
+// so this label reads as a normal button, since it wraps a hidden file input.
+.file-upload-btn {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  text-transform: none;
+  letter-spacing: normal;
+  color: #fff;
+  cursor: pointer;
+  margin: 0;
+}
+
+.file-upload-btn.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .expenses-page {
+    padding: 16px 16px 32px;
+  }
+}

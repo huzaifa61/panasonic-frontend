@@ -1,0 +1,180 @@
+.grid-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.grid-scroll {
+  overflow: auto;
+  max-height: 620px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+
+.budget-grid {
+  border-collapse: collapse;
+  // Fixed layout: column widths come strictly from the classes below instead of
+  // being auto-computed from content. Without this, a row with unusually long
+  // wrapped text (like the Unallocated row's description) can make the browser
+  // miscompute column tracks, causing the sticky column to visually overlap the
+  // next column's content.
+  //
+  // width is intentionally NOT 100% - with table-layout:fixed, a percentage
+  // width forces the browser to proportionally shrink every column whenever the
+  // container is narrower than the sum of the explicit column widths below,
+  // which reintroduces the same sticky-column overlap via sub-pixel rounding.
+  // Letting the table take its natural (sum-of-columns) width and relying on
+  // .grid-scroll's horizontal scrollbar for narrow containers avoids that.
+  table-layout: fixed;
+  width: auto;
+  font-size: 12.5px;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.budget-grid th,
+.budget-grid td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  white-space: nowrap;
+  vertical-align: top;
+  text-align: left;
+}
+
+.budget-grid thead th {
+  position: sticky;
+  top: 0;
+  background: var(--color-surface-alt);
+  z-index: 2;
+  text-transform: uppercase;
+  font-size: 10px;
+  color: var(--color-text-faint);
+  letter-spacing: 0.03em;
+  font-weight: 700;
+}
+
+.sticky-col {
+  position: sticky;
+  left: 0;
+  background: var(--color-surface);
+  z-index: 1;
+  width: 190px;
+  min-width: 190px;
+  max-width: 190px;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.approved-col {
+  width: 100px;
+  min-width: 100px;
+  max-width: 100px;
+}
+
+thead .sticky-col {
+  z-index: 3;
+}
+
+.gl-code {
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.deviation-flag {
+  margin-left: 4px;
+  color: #a15c00;
+}
+
+.gl-desc {
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.month-cell {
+  width: 90px;
+  min-width: 90px;
+  max-width: 90px;
+}
+
+.month-cell.cell-locked {
+  background: var(--color-surface-alt);
+}
+
+.cell-input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 3px 5px;
+  font-size: 11.5px;
+  margin: 0 0 2px;
+  border-radius: 4px;
+  box-shadow: none;
+  transform: none;
+}
+
+.stack-line {
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+  padding: 1px 0;
+}
+
+.stack-line.plan {
+  color: var(--color-text-faint);
+}
+
+.stack-line.actual {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+.cell-invalid {
+  border-color: var(--color-danger) !important;
+  background: #fdf0f1;
+}
+
+.cell-deviated {
+  border-color: #d99a2b !important;
+  background: #fffaf3;
+}
+
+.forecast-pending {
+  font-size: 10px;
+  font-weight: 600;
+  color: #a15c00;
+  background: #fffaf3;
+  border: 1px solid #d99a2b;
+  border-radius: 4px;
+  padding: 3px 5px;
+  margin: 0 0 2px;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+.fy-total {
+  width: 100px;
+  min-width: 100px;
+  max-width: 100px;
+  font-weight: 700;
+}
+
+.row-deviated .gl-code {
+  color: #a15c00;
+}
+
+.row-unallocated .gl-code,
+.row-unallocated .gl-desc {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.total-row td {
+  font-weight: 700;
+  background: var(--color-surface-alt);
+  border-top: 2px solid var(--color-border);
+}
+
+.total-row-actual td {
+  color: var(--color-text);
+}

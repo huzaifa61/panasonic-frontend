@@ -1,0 +1,122 @@
+.budget-planning-page {
+  padding: 28px 36px 48px;
+  max-width: 1500px;
+  margin: 0 auto;
+}
+
+@media (max-width: 640px) {
+  .budget-planning-page {
+    padding: 16px 16px 32px;
+  }
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.header-subtitle {
+  margin: 2px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.store-select {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--color-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.forecast-caption {
+  margin: 0 0 18px;
+  font-size: 13px;
+}
+
+.forecast-caption strong {
+  color: var(--color-text);
+}
+
+.form-card {
+  padding: 22px 24px;
+  margin-bottom: 20px;
+}
+
+.form-card h2 {
+  font-size: 15px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.form-row label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 11.5px;
+  color: var(--color-text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+  flex: 1;
+  min-width: 160px;
+}
+
+.rollup-card {
+  margin-top: 30px;
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.rollup-card table {
+  box-shadow: none;
+  border-radius: 0;
+  width: auto;
+  min-width: 100%;
+}
+
+// Tighter than the global th/td padding so this 8-column summary comfortably
+// fits most screens without needing the horizontal scroll above.
+.rollup-card table th,
+.rollup-card table td {
+  padding: 8px 10px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+// Match the section heading's 20px inset on just the outer edges, instead of
+// widening every column, so the table lines up with the title above it
+// without giving back the width the tighter padding above just saved.
+.rollup-card table th:first-child,
+.rollup-card table td:first-child {
+  padding-left: 20px;
+}
+
+.rollup-card table th:last-child,
+.rollup-card table td:last-child {
+  padding-right: 20px;
+}
+
+.grand-total-row td {
+  font-weight: 700;
+  background: var(--color-surface-alt);
+}

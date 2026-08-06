@@ -1,0 +1,95 @@
+<div class="grid-toolbar">
+  <button class="btn-secondary" (click)="onSaveBudget()" [disabled]="!hasDirtyBudget()">Save Budget</button>
+  <button class="btn-primary" (click)="onProposeForecast()" [disabled]="!hasDirtyForecast()">Propose Forecast Changes</button>
+</div>
+
+<div class="grid-scroll">
+  <table class="budget-grid">
+    <thead>
+      <tr>
+        <th class="sticky-col">GL Code / Description</th>
+        <th class="approved-col">Approved (AED)</th>
+        @for (label of monthLabels; track label) {
+          <th class="month-cell">{{ label }}</th>
+        }
+        <th class="fy-total">FY Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.lineItemId) {
+        <tr [class.row-deviated]="row.hasDeviation" [class.row-unallocated]="row.glCode === 'OTHER'">
+          <td class="sticky-col">
+            <div class="gl-code">
+              {{ row.glCode }}
+              @if (row.hasDeviation) {
+                <span class="deviation-flag" title="Forecast has drifted more than 15% from budget in at least one month">⚠</span>
+              }
+            </div>
+            <div class="gl-desc">{{ row.description }}</div>
+          </td>
+          <td class="approved-col">{{ row.approvedAmount | number: '1.0-0' }}</td>
+          @for (m of row.months; track m.calendarYear + '-' + m.calendarMonth) {
+            <td class="month-cell" [class.cell-locked]="m.isLocked">
+              @if (m.isLocked) {
+                <div class="stack-line plan">P {{ m.budget | number: '1.0-0' }}</div>
+                <div class="stack-line forecast">F {{ m.forecast | number: '1.0-0' }}</div>
+                <div class="stack-line actual">A {{ m.result | number: '1.0-0' }}</div>
+              } @else {
+                <input
+                  type="number"
+                  class="cell-input"
+                  title="Budget"
+                  [class.cell-invalid]="m.isBudgetInvalid"
+                  [value]="m.budget"
+                  (change)="onBudgetChange(row, m, $any($event.target).value)" />
+                @if (m.hasPendingApproval) {
+                  <div class="stack-line forecast-pending" title="A forecast revision for this month is awaiting Store Manager / Regional Manager approval">
+                    F {{ m.pendingForecastAmount | number: '1.0-0' }} &middot; pending approval
+                  </div>
+                } @else {
+                  <input
+                    type="number"
+                    class="cell-input"
+                    title="Forecast"
+                    [class.cell-deviated]="m.isDeviated"
+                    [value]="m.forecast"
+                    (change)="onForecastChange(row, m, $any($event.target).value)" />
+                }
+                <div class="stack-line actual">A {{ m.result | number: '1.0-0' }}</div>
+              }
+            </td>
+          }
+          <td class="fy-total" [class.cell-invalid]="row.budgetTotal > row.approvedAmount">
+            {{ row.budgetTotal | number: '1.0-0' }}
+          </td>
+        </tr>
+      }
+      @if (grid) {
+        <tr class="total-row">
+          <td class="sticky-col">Total Plan (Budget)</td>
+          <td class="approved-col"></td>
+          @for (v of grid.grandTotalMonthlyBudget; track $index) {
+            <td>{{ v | number: '1.0-0' }}</td>
+          }
+          <td class="fy-total">{{ grid.grandTotalFiscalYearBudget | number: '1.0-0' }}</td>
+        </tr>
+        <tr class="total-row">
+          <td class="sticky-col">Total Forecast</td>
+          <td class="approved-col"></td>
+          @for (v of grid.grandTotalMonthlyForecast; track $index) {
+            <td>{{ v | number: '1.0-0' }}</td>
+          }
+          <td class="fy-total">{{ grid.grandTotalFiscalYearForecast | number: '1.0-0' }}</td>
+        </tr>
+        <tr class="total-row total-row-actual">
+          <td class="sticky-col">Total Actual (Expense)</td>
+          <td class="approved-col"></td>
+          @for (v of grid.grandTotalMonthlyActual; track $index) {
+            <td>{{ v | number: '1.0-0' }}</td>
+          }
+          <td class="fy-total">{{ grid.grandTotalFiscalYearActual | number: '1.0-0' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

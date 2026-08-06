@@ -1,0 +1,482 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <div>
+      <h1>Plan, Budget &amp; Actuals</h1>
+      <p class="header-subtitle">Budget, spend, and performance across every Panasonic store</p>
+    </div>
+    <div class="header-controls">
+      <div class="view-toggle">
+        <button type="button" [class.active]="viewMode() === 'month'" (click)="setViewMode('month')">Month</button>
+        <button type="button" [class.active]="viewMode() === 'year'" (click)="setViewMode('year')">Year</button>
+      </div>
+      <app-period-picker
+        [year]="year"
+        [month]="month"
+        [disabled]="viewMode() === 'year'"
+        (yearChange)="year = $event"
+        (monthChange)="month = $event"
+        (periodChange)="onPeriodChange()">
+      </app-period-picker>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <section class="kpi-row">
+      @for (i of [1, 2, 3, 4, 5]; track i) {
+        <div class="kpi-card skeleton">
+          <div class="skeleton-block" style="width: 60%; height: 11px;"></div>
+          <div class="skeleton-block" style="width: 80%; height: 22px; margin-top: 8px;"></div>
+        </div>
+      }
+    </section>
+  }
+
+  @if (overview(); as ov) {
+    <section class="kpi-row">
+      <a class="kpi-card" [routerLink]="['/budget-planning']" title="View the budget breakdown behind this figure">
+        <span class="kpi-icon icon-budget">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><rect x="3" y="6" width="18" height="13" rx="2.4" /><path d="M3 10h18" /><circle cx="16.5" cy="14" r="1.4" fill="#fff" stroke="none" /></svg>
+        </span>
+        <span class="kpi-label">Planned Budget</span>
+        <span class="kpi-value">{{ (viewMode() === 'year' ? yearKpis()?.totalBudget ?? 0 : ov.totalBudget) | number: '1.2-2' }}</span>
+        @if (viewMode() === 'month' && budgetDelta(); as d) {
+          <span class="kpi-delta" [class.up]="d.isUp" [class.down]="!d.isUp">
+            {{ d.isUp ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number: '1.1-1' }}% vs last month
+          </span>
+        }
+        @if (viewMode() === 'year') {
+          <span class="kpi-sublabel">FY2026-27 total</span>
+        }
+      </a>
+      <a
+        class="kpi-card"
+        [routerLink]="['/expenses']"
+        [queryParams]="viewMode() === 'month' ? { year: year, month: month } : {}"
+        title="View the expenses behind this figure">
+        <span class="kpi-icon icon-expense">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M6 3h9l3 3v15H6z" stroke-linejoin="round" /><path d="M9 9h6M9 13h6M9 17h4" stroke-linecap="round" /></svg>
+        </span>
+        <span class="kpi-label">Actuals Expense</span>
+        <span class="kpi-value">{{ (viewMode() === 'year' ? yearKpis()?.totalApprovedExpense ?? 0 : ov.totalApprovedExpense) | number: '1.2-2' }}</span>
+        @if (viewMode() === 'month' && approvedExpenseDelta(); as d) {
+          <span class="kpi-delta" [class.up]="!d.isUp" [class.down]="d.isUp">
+            {{ d.isUp ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number: '1.1-1' }}% vs last month
+          </span>
+        }
+        @if (viewMode() === 'year') {
+          <span class="kpi-sublabel">FY2026-27 total</span>
+        }
+      </a>
+      <a class="kpi-card" [routerLink]="['/budget-planning']" title="View the forecast breakdown behind this figure">
+        <span class="kpi-icon icon-forecast">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 17l4-5 4 3 8-9" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="2.5 2.5" /><path d="M14 6h6v6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </span>
+        <span class="kpi-label">Forecast Expense</span>
+        <span class="kpi-value">{{ totalForecastedExpense() | number: '1.2-2' }}</span>
+        @if (viewMode() === 'year') {
+          <span class="kpi-sublabel">FY2026-27 total</span>
+        }
+      </a>
+      <a
+        class="kpi-card"
+        [routerLink]="['/revenue']"
+        [queryParams]="viewMode() === 'month' ? { year: year, month: month } : {}"
+        title="View the revenue behind this figure">
+        <span class="kpi-icon icon-earnings">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M3 17 9 11l4 4 8-8" stroke-linecap="round" stroke-linejoin="round" /><path d="M15 7h6v6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </span>
+        <span class="kpi-label">Revenue (AED)</span>
+        <span class="kpi-value">{{ (viewMode() === 'year' ? yearKpis()?.totalEarnings ?? 0 : ov.totalEarnings) | number: '1.2-2' }}</span>
+        @if (viewMode() === 'month' && earningsDelta(); as d) {
+          <span class="kpi-delta" [class.up]="d.isUp" [class.down]="!d.isUp">
+            {{ d.isUp ? '▲' : '▼' }} {{ (d.pct < 0 ? -d.pct : d.pct) | number: '1.1-1' }}% vs last month
+          </span>
+        }
+        @if (viewMode() === 'year') {
+          <span class="kpi-sublabel">FY2026-27 total</span>
+        }
+      </a>
+      <a
+        class="kpi-card"
+        [routerLink]="['/revenue']"
+        [queryParams]="{ dateFrom: revenueGrowthDateRange().from, dateTo: revenueGrowthDateRange().to }"
+        title="View the monthly breakdown behind this growth figure">
+        <span class="kpi-icon icon-growth">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 17l4-5 4 3 8-9" stroke-linecap="round" stroke-linejoin="round" /><path d="M14 6h6v6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </span>
+        <span class="kpi-label">Revenue Growth %</span>
+        @if (viewMode() === 'year') {
+          <span class="kpi-value" [class.negative]="(revenueGrowthYearPercent() ?? 0) < 0">
+            {{ (revenueGrowthYearPercent() ?? 0) | number: '1.1-1' }}%
+          </span>
+          <span class="kpi-sublabel">Avg monthly growth, FY2026-27</span>
+        } @else {
+          <span class="kpi-value" [class.negative]="(earningsDelta()?.pct ?? 0) < 0">
+            {{ (earningsDelta()?.pct ?? 0) | number: '1.1-1' }}%
+          </span>
+          <span class="kpi-sublabel">vs last month</span>
+        }
+      </a>
+    </section>
+
+    @if (viewMode() === 'year' && storeFySummary(); as summary) {
+      <section class="rollup-panel card monthly-summary">
+        <div class="section-heading">
+          <h3>
+            FY2026-27 Store Summary &mdash; Plan vs Forecast vs Actual (AED)
+            <span
+              class="info-badge"
+              title="Actual is highlighted red for any past/current month where it deviates from Plan by more than 15%.">
+              ?
+            </span>
+          </h3>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Store / Metric</th>
+              @for (m of monthLabels; track m) {
+                <th>{{ m }}</th>
+              }
+              <th>FY Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of summary; track row.storeId) {
+              <tr class="store-group-row">
+                <td [attr.colspan]="monthLabels.length + 2">
+                  <a
+                    class="store-name-cell store-name-link"
+                    [routerLink]="['/expenses']"
+                    [queryParams]="{ storeId: row.storeId }"
+                    title="View all of this store's expenses">
+                    <app-store-icon [name]="row.storeName"></app-store-icon>
+                    <span>{{ row.storeName }}</span>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="metric-label">Plan (Budget)</td>
+                @for (v of row.monthlyPlan; track $index) {
+                  <td>{{ v | zeroDash }}</td>
+                }
+                <td class="fy-total-cell">{{ row.planFy | zeroDash }}</td>
+              </tr>
+              <tr>
+                <td class="metric-label">Forecast</td>
+                @for (v of row.monthlyForecast; track $index) {
+                  <td>{{ v | zeroDash }}</td>
+                }
+                <td class="fy-total-cell">{{ row.forecastFy | zeroDash }}</td>
+              </tr>
+              <tr>
+                <td class="metric-label">Actual (Expense)</td>
+                @for (v of row.monthlyActual; track $index) {
+                  <td [class.deviated]="isMonthDeviated(row.monthlyPlan[$index], v, row.monthlyLocked[$index])">
+                    {{ v | zeroDash }}
+                  </td>
+                }
+                <td class="fy-total-cell" [class.deviated]="(row.planFy - row.actualFy) < 0">
+                  {{ row.actualFy | zeroDash }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    <section class="charts-row">
+      <div class="chart-card wide">
+        <h3>{{ viewMode() === 'year' ? 'FY2026-27 Trend' : 'Monthly Trend' }}</h3>
+        <app-trend-chart [trend]="viewMode() === 'year' ? yearTrend() : trend()"></app-trend-chart>
+      </div>
+      <div class="chart-card">
+        <h3>
+          {{ viewMode() === 'year' ? 'Margin % by Product (FY2026-27)' : 'Margin % by Product' }}
+          <span
+            class="info-badge"
+            title="Margin here is Revenue minus an assumed cost-of-sales per category (a fixed estimate, not a tracked cost), kept separate from operating Expense so it doesn't affect Net Profit or Budget figures elsewhere.">
+            ?
+          </span>
+        </h3>
+        @if ((viewMode() === 'year' ? yearCategoryMargin() : categoryMargin()); as margins) {
+          @if (margins.length) {
+            <app-margin-by-category-chart [categoryMargins]="margins"></app-margin-by-category-chart>
+          } @else {
+            <p class="hint">No revenue recorded this period.</p>
+          }
+        }
+      </div>
+    </section>
+
+    <section class="charts-row-even">
+      <div class="chart-card">
+        <h3>{{ viewMode() === 'year' ? 'Revenue vs Forecast — FY2026-27 (AED)' : 'Revenue vs Forecast (AED)' }}</h3>
+        <app-store-comparison-chart
+          [data]="revenueVsForecastData()"
+          seriesALabel="Revenue"
+          seriesBLabel="Forecasted Revenue">
+        </app-store-comparison-chart>
+      </div>
+      <div class="chart-card">
+        <h3>{{ viewMode() === 'year' ? 'Actuals vs Forecast — FY2026-27 (AED)' : 'Actuals vs Forecast (AED)' }}</h3>
+        <app-store-comparison-chart
+          [data]="actualsVsForecastData()"
+          seriesALabel="Actual Expense"
+          seriesBLabel="Forecasted Expense">
+        </app-store-comparison-chart>
+      </div>
+    </section>
+
+    @if (viewMode() === 'month') {
+    <section class="stores card">
+      <div class="section-heading">
+        <h3>Store Performance</h3>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Store</th>
+            <th>
+              Budget (AED)
+              <span class="info-badge" title="The monthly operating expense budget set for this store, editable in Store Management.">?</span>
+            </th>
+            <th>
+              Approved Expense (AED)
+              <span class="info-badge" title="Sum of this store's expenses that have been approved this month. Excludes anything still pending Level 1/Level 2 approval.">?</span>
+            </th>
+            <th>
+              Pending Expense (AED)
+              <span class="info-badge" title="Sum of expenses awaiting Store Manager (Level 1) or Regional Manager (Level 2) approval this month.">?</span>
+            </th>
+            <th>
+              Variance (AED)
+              <span class="info-badge" title="Budget minus Approved Expense. Positive means the store is under budget; negative means it's over.">?</span>
+            </th>
+            <th>
+              Earnings (AED)
+              <span class="info-badge" title="Sum of all Revenue recorded for this store this month.">?</span>
+            </th>
+            <th>
+              Forecast Rev. (AED)
+              <span class="info-badge" title="A manually-set revenue forecast for this store/month, editable in Store Management. Not calculated automatically.">?</span>
+            </th>
+            <th>
+              Forecast Exp. (AED)
+              <span class="info-badge" title="A manually-set expense forecast for this store/month, editable in Store Management. Not calculated automatically.">?</span>
+            </th>
+            <th>
+              Net Profit (AED)
+              <span class="info-badge" title="Earnings minus Approved Expense.">?</span>
+            </th>
+            <th>
+              Margin %
+              <span class="info-badge" title="Net Profit divided by Earnings, as a percentage: (Earnings - Approved Expense) / Earnings x 100.">?</span>
+            </th>
+            <th>
+              Target (AED)
+              <span class="info-badge" title="The store's monthly profit target, editable in Store Management. Compared against Net Profit to determine MET/NOT MET status.">?</span>
+            </th>
+            <th>
+              Status
+              <span class="info-badge" title="MET if Net Profit is greater than or equal to the Target profit amount for this store/month, otherwise NOT MET.">?</span>
+            </th>
+            <th>
+              Pending Approvals
+              <span class="info-badge" title="Count of this store's expenses currently awaiting Level 1 or Level 2 approval.">?</span>
+            </th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (store of ov.stores; track store.storeId) {
+            <tr>
+              <td>
+                <a
+                  class="store-name-cell store-name-link"
+                  [routerLink]="['/expenses']"
+                  [queryParams]="{ storeId: store.storeId, year: year, month: month }"
+                  title="View this store's expenses for {{ month }}/{{ year }}">
+                  <app-store-icon [name]="store.storeName"></app-store-icon>
+                  <span>{{ store.storeName }}</span>
+                </a>
+              </td>
+              <td>{{ store.budget | number: '1.2-2' }}</td>
+              <td>{{ store.approvedExpense | number: '1.2-2' }}</td>
+              <td>{{ store.pendingExpense | number: '1.2-2' }}</td>
+              <td [class.negative]="store.budgetVariance < 0">{{ store.budgetVariance | number: '1.2-2' }}</td>
+              <td>{{ store.earnings | number: '1.2-2' }}</td>
+              <td>{{ store.forecastedRevenue | number: '1.2-2' }}</td>
+              <td>{{ store.forecastedExpense | number: '1.2-2' }}</td>
+              <td [class.negative]="store.netProfit < 0">{{ store.netProfit | number: '1.2-2' }}</td>
+              <td>{{ store.marginPercent | number: '1.1-1' }}%</td>
+              <td>{{ store.targetProfitAmount | number: '1.0-0' }}</td>
+              <td>
+                <span class="badge" [class.ok]="store.metProfitTarget" [class.rejected]="!store.metProfitTarget">
+                  {{ store.metProfitTarget ? 'MET' : 'NOT MET' }}
+                </span>
+              </td>
+              <td>
+                @if (store.pendingApprovalsCount > 0) {
+                  <a class="badge" [routerLink]="['/approvals']" [queryParams]="{ storeId: store.storeId }">
+                    {{ store.pendingApprovalsCount }} pending
+                  </a>
+                } @else {
+                  <span class="badge ok">clear</span>
+                }
+              </td>
+              <td>
+                <button
+                  class="btn-link"
+                  (click)="downloadReport(store.storeId)"
+                  [disabled]="downloadingStoreId() === store.storeId">
+                  {{ downloadingStoreId() === store.storeId ? 'Downloading...' : 'Export CSV' }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+    }
+
+    @if (viewMode() === 'year' && storeQuarterlyRollup(); as rollup) {
+      <section class="rollup-panel card">
+        <div class="section-heading">
+          <h3>FY2026-27 Budget Rollup (AED)</h3>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Store / Metric</th>
+              <th>Q1</th>
+              <th>Q2</th>
+              <th>Q3</th>
+              <th>Q4</th>
+              <th>H1</th>
+              <th>H2</th>
+              <th>FY Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rollup; track row.storeId) {
+              <tr class="store-group-row">
+                <td colspan="8">
+                  <a
+                    class="store-name-cell store-name-link"
+                    [routerLink]="['/expenses']"
+                    [queryParams]="{ storeId: row.storeId }"
+                    title="View all of this store's expenses">
+                    <app-store-icon [name]="row.storeName"></app-store-icon>
+                    <span>{{ row.storeName }}</span>
+                  </a>
+                </td>
+              </tr>
+              <tr>
+                <td class="metric-label">Plan (Budget)</td>
+                <td>{{ row.plan.q1 | zeroDash }}</td>
+                <td>{{ row.plan.q2 | zeroDash }}</td>
+                <td>{{ row.plan.q3 | zeroDash }}</td>
+                <td>{{ row.plan.q4 | zeroDash }}</td>
+                <td>{{ row.plan.h1 | zeroDash }}</td>
+                <td>{{ row.plan.h2 | zeroDash }}</td>
+                <td class="fy-total-cell">{{ row.plan.fy | zeroDash }}</td>
+              </tr>
+              <tr>
+                <td class="metric-label">Forecast</td>
+                <td>{{ row.forecast.q1 | zeroDash }}</td>
+                <td>{{ row.forecast.q2 | zeroDash }}</td>
+                <td>{{ row.forecast.q3 | zeroDash }}</td>
+                <td>{{ row.forecast.q4 | zeroDash }}</td>
+                <td>{{ row.forecast.h1 | zeroDash }}</td>
+                <td>{{ row.forecast.h2 | zeroDash }}</td>
+                <td class="fy-total-cell">{{ row.forecast.fy | zeroDash }}</td>
+              </tr>
+              <tr>
+                <td class="metric-label">Actual (Expense)</td>
+                <td>{{ row.actual.q1 | zeroDash }}</td>
+                <td>{{ row.actual.q2 | zeroDash }}</td>
+                <td>{{ row.actual.q3 | zeroDash }}</td>
+                <td>{{ row.actual.q4 | zeroDash }}</td>
+                <td>{{ row.actual.h1 | zeroDash }}</td>
+                <td>{{ row.actual.h2 | zeroDash }}</td>
+                <td class="fy-total-cell" [class.deviated]="(row.plan.fy - row.actual.fy) < 0">
+                  {{ row.actual.fy | zeroDash }}
+                </td>
+              </tr>
+            }
+            @if (storeQuarterlyTotals(); as t) {
+              <tr class="grand-total-row">
+                <td>Total Plan (Budget) - All Stores</td>
+                <td>{{ t.plan.q1 | zeroDash }}</td>
+                <td>{{ t.plan.q2 | zeroDash }}</td>
+                <td>{{ t.plan.q3 | zeroDash }}</td>
+                <td>{{ t.plan.q4 | zeroDash }}</td>
+                <td>{{ t.plan.h1 | zeroDash }}</td>
+                <td>{{ t.plan.h2 | zeroDash }}</td>
+                <td>{{ t.plan.fy | zeroDash }}</td>
+              </tr>
+              <tr class="grand-total-row">
+                <td>Total Forecast - All Stores</td>
+                <td>{{ t.forecast.q1 | zeroDash }}</td>
+                <td>{{ t.forecast.q2 | zeroDash }}</td>
+                <td>{{ t.forecast.q3 | zeroDash }}</td>
+                <td>{{ t.forecast.q4 | zeroDash }}</td>
+                <td>{{ t.forecast.h1 | zeroDash }}</td>
+                <td>{{ t.forecast.h2 | zeroDash }}</td>
+                <td>{{ t.forecast.fy | zeroDash }}</td>
+              </tr>
+              <tr class="grand-total-row">
+                <td>Total Actual (Expense) - All Stores</td>
+                <td>{{ t.actual.q1 | zeroDash }}</td>
+                <td>{{ t.actual.q2 | zeroDash }}</td>
+                <td>{{ t.actual.q3 | zeroDash }}</td>
+                <td>{{ t.actual.q4 | zeroDash }}</td>
+                <td>{{ t.actual.h1 | zeroDash }}</td>
+                <td>{{ t.actual.h2 | zeroDash }}</td>
+                <td>{{ t.actual.fy | zeroDash }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    }
+
+    <section class="headcount-panel card">
+      <div class="section-heading">
+        <h3>Workforce Planning</h3>
+      </div>
+      @if (headcount().length) {
+        <table>
+          <thead>
+            <tr>
+              <th>Store</th>
+              <th>Current Headcount</th>
+              <th>Forecasted Need</th>
+              <th>Gap</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of headcount(); track row.storeId) {
+              <tr>
+                <td class="store-name-cell">
+                  <app-store-icon [name]="row.storeName"></app-store-icon>
+                  <span>{{ row.storeName }}</span>
+                </td>
+                <td>{{ row.currentHeadcount }}</td>
+                <td>{{ row.forecastedHeadcountNeed }}</td>
+                <td [class.negative]="row.gap > 0">
+                  {{ row.gap > 0 ? '+' + row.gap : row.gap }}
+                  {{ row.gap > 0 ? '(understaffed)' : row.gap < 0 ? '(overstaffed)' : '(adequate)' }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <p class="hint">No headcount data for this period.</p>
+      }
+    </section>
+  }
+</div>

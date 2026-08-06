@@ -1,0 +1,152 @@
+<div class="global-planning-page">
+  <div class="page-header">
+    <div>
+      <h1>Global Planning</h1>
+      <p class="header-subtitle">
+        Set Budget and Forecasted Expense across FY{{ fiscalYear }}-{{ fiscalYear + 1 }}, for one store or all at once
+      </p>
+    </div>
+    <div class="header-actions">
+      <label class="store-select">
+        Store
+        <select
+          [ngModel]="selectedStoreId()"
+          (ngModelChange)="onStoreChange($event)"
+          [disabled]="allStores()"
+          name="store">
+          @for (store of stores(); track store.id) {
+            <option [value]="store.id">{{ store.name }}</option>
+          }
+        </select>
+      </label>
+      <label class="all-stores-check">
+        <input type="checkbox" [ngModel]="allStores()" (ngModelChange)="onAllStoresChange($event)" name="allStores" />
+        All Stores
+      </label>
+      <button class="btn-primary" (click)="onSave()" [disabled]="!hasDirty() || saving()">
+        {{ saving() ? 'Saving...' : 'Save Changes' }}
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <p class="hint">Loading...</p>
+  }
+
+  @for (store of storesGrid(); track store.storeId) {
+    <section class="store-grid-card card">
+      <div class="section-heading allocated-budget-heading">
+        <h3>{{ store.storeName }}</h3>
+        <label class="allocated-budget-field">
+          Total Allocated Budget (FY{{ fiscalYear }})
+          <span class="allocated-budget-input-row">
+            <input
+              type="number"
+              class="cell-input"
+              [value]="allocatedBudgets().get(store.storeId) ?? 0"
+              (change)="onAllocatedBudgetChange(store.storeId, $any($event.target).value)" />
+            AED
+          </span>
+        </label>
+        <span class="allocated-budget-hint" [class.negative]="remainingAllocatedBudget(store) < 0">
+          {{ fyTotal(store.months, 'budget') | number: '1.0-0' }} AED planned across all GL codes &middot;
+          {{ remainingAllocatedBudget(store) | number: '1.0-0' }} AED remaining
+        </span>
+      </div>
+      <div class="grid-scroll">
+        <table class="planning-grid">
+          <thead>
+            <tr>
+              <th class="sticky-col">Metric</th>
+              @for (label of monthLabels; track label) {
+                <th class="month-cell">{{ label }}</th>
+              }
+              <th class="month-cell fy-total-col">FY Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="sticky-col">Budget (Plan)</td>
+              @for (m of store.months; track m.calendarYear + '-' + m.calendarMonth) {
+                <td class="month-cell" [class.cell-locked]="!m.isBudgetEditable">
+                  @if (m.isBudgetEditable) {
+                    <input
+                      type="number"
+                      class="cell-input"
+                      [value]="m.budget"
+                      (change)="onBudgetChange(store.storeId, m, $any($event.target).value)" />
+                  } @else {
+                    <span
+                      class="locked-value"
+                      [title]="m.isMonthLocked ? 'This month has already passed' : 'Managed via Budget Planning line items'">
+                      {{ m.budget | number: '1.0-0' }}
+                    </span>
+                  }
+                </td>
+              }
+              <td class="month-cell fy-total-col">{{ fyTotal(store.months, 'budget') | number: '1.0-0' }}</td>
+            </tr>
+            <tr>
+              <td class="sticky-col">Forecasted Expense</td>
+              @for (m of store.months; track m.calendarYear + '-' + m.calendarMonth) {
+                <td class="month-cell" [class.cell-locked]="!m.isForecastEditable">
+                  @if (m.isForecastEditable) {
+                    <input
+                      type="number"
+                      class="cell-input"
+                      [value]="m.forecastedExpense"
+                      (change)="onForecastChange(store.storeId, m, $any($event.target).value)" />
+                  } @else {
+                    <span
+                      class="locked-value"
+                      [title]="m.isMonthLocked ? 'This month has already passed' : 'Managed via Budget Planning line-item forecast'">
+                      {{ m.forecastedExpense | number: '1.0-0' }}
+                    </span>
+                  }
+                </td>
+              }
+              <td class="month-cell fy-total-col">{{ fyTotal(store.months, 'forecastedExpense') | number: '1.0-0' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+
+  @if (crossStoreTotals(); as totals) {
+    <section class="store-grid-card card total-card">
+      <div class="section-heading">
+        <h3>Total — All Stores</h3>
+      </div>
+      <div class="grid-scroll">
+        <table class="planning-grid">
+          <thead>
+            <tr>
+              <th class="sticky-col">Metric</th>
+              @for (label of monthLabels; track label) {
+                <th class="month-cell">{{ label }}</th>
+              }
+              <th class="month-cell fy-total-col">FY Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="sticky-col">Budget (Plan)</td>
+              @for (m of totals.months; track m.calendarYear + '-' + m.calendarMonth) {
+                <td class="month-cell">{{ m.budget | number: '1.0-0' }}</td>
+              }
+              <td class="month-cell fy-total-col">{{ totals.fyBudgetTotal | number: '1.0-0' }}</td>
+            </tr>
+            <tr>
+              <td class="sticky-col">Forecasted Expense</td>
+              @for (m of totals.months; track m.calendarYear + '-' + m.calendarMonth) {
+                <td class="month-cell">{{ m.forecastedExpense | number: '1.0-0' }}</td>
+              }
+              <td class="month-cell fy-total-col">{{ totals.fyForecastTotal | number: '1.0-0' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+</div>

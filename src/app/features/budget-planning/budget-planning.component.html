@@ -1,0 +1,151 @@
+<div class="budget-planning-page">
+  <div class="page-header">
+    <div>
+      <h1>Budget Planning</h1>
+      <p class="header-subtitle">FY{{ fiscalYear }}-{{ fiscalYear + 1 }} line-item budgets, rolling forecast, and approvals</p>
+    </div>
+    <div class="header-actions">
+      <label class="store-select">
+        Store
+        <select [ngModel]="selectedStoreId()" (ngModelChange)="selectedStoreId.set($event); onStoreChange()" name="store">
+          @for (store of stores(); track store.id) {
+            <option [value]="store.id">{{ store.name }}</option>
+          }
+        </select>
+      </label>
+      <button class="btn-secondary" (click)="lockForecastVersion()">Lock This Month's Forecast</button>
+      <button class="btn-primary" (click)="showAddForm.set(!showAddForm())">
+        {{ showAddForm() ? 'Cancel' : '+ Add Line Item' }}
+      </button>
+    </div>
+  </div>
+
+  @if (grid(); as g) {
+    <p class="hint forecast-caption">Current forecast version: <strong>{{ g.currentForecastLabel || 'None' }}</strong></p>
+    @if (g.totalAllocatedBudget !== null) {
+      <p
+        class="hint allocated-budget-caption"
+        title="The store-wide ceiling set in Store Management. The sum of every GL code's Approved Amount can't exceed this, even though it's not a limit on any one line item.">
+        Total Allocated Budget (FY{{ fiscalYear }}): <strong>{{ g.totalAllocatedBudget | number: '1.0-0' }} AED</strong>
+        &middot; Planned across all GL codes: <strong>{{ g.grandTotalFiscalYearBudget | number: '1.0-0' }} AED</strong>
+        &middot;
+        <strong [class.negative]="(g.totalAllocatedBudget - g.grandTotalFiscalYearBudget) < 0">
+          {{ g.totalAllocatedBudget - g.grandTotalFiscalYearBudget | number: '1.0-0' }} AED remaining
+        </strong>
+      </p>
+    }
+  }
+
+  @if (showAddForm()) {
+    <section class="form-card card">
+      <h2>Add Budget Line Item</h2>
+      <form (ngSubmit)="submitAddLineItem()">
+        <div class="form-row">
+          <label>
+            GL Code
+            <input type="text" [(ngModel)]="newLineItem.glCode" name="glCode" placeholder="e.g. OPX-STAFF" required />
+          </label>
+          <label>
+            Description
+            <input type="text" [(ngModel)]="newLineItem.description" name="description" required />
+          </label>
+          <label>
+            Cost Center
+            <input type="text" [(ngModel)]="newLineItem.costCenter" name="costCenter" required />
+          </label>
+          <label>
+            Expense Category
+            <input type="text" [(ngModel)]="newLineItem.expenseCategory" name="expenseCategory" required />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>
+            Units
+            <input type="number" [(ngModel)]="newLineItem.units" name="units" min="0" step="0.01" required />
+          </label>
+          <label>
+            Rate (AED)
+            <input type="number" [(ngModel)]="newLineItem.rate" name="rate" min="0" step="0.01" required />
+          </label>
+          <label>
+            No of Months
+            <input type="number" [(ngModel)]="newLineItem.noOfMonths" name="noOfMonths" min="1" max="12" required />
+          </label>
+          <label>
+            Approved Amount (AED)
+            <input type="number" [(ngModel)]="newLineItem.approvedAmount" name="approvedAmount" min="0" step="0.01" required />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>
+            Start Date
+            <input type="date" [(ngModel)]="newLineItem.startDate" name="startDate" required />
+          </label>
+          <label>
+            End Date
+            <input type="date" [(ngModel)]="newLineItem.endDate" name="endDate" required />
+          </label>
+        </div>
+        <button type="submit" class="btn-primary" [disabled]="addSubmitting()">
+          {{ addSubmitting() ? 'Adding...' : 'Add Line Item' }}
+        </button>
+      </form>
+    </section>
+  }
+
+  @if (loading()) {
+    <p class="hint">Loading...</p>
+  }
+
+  @if (grid(); as g) {
+    <app-budget-line-item-grid
+      [grid]="g"
+      (saveBudget)="onSaveBudget($event)"
+      (proposeForecast)="onProposeForecast($event)">
+    </app-budget-line-item-grid>
+
+<!--    <section class="rollup-card card">-->
+<!--      <div class="section-heading"><h3>Category Rollup (Budget, AED)</h3></div>-->
+<!--      <table>-->
+<!--        <thead>-->
+<!--          <tr>-->
+<!--            <th>Category</th>-->
+<!--            <th>Q1</th>-->
+<!--            <th>Q2</th>-->
+<!--            <th>Q3</th>-->
+<!--            <th>Q4</th>-->
+<!--            <th>H1</th>-->
+<!--            <th>H2</th>-->
+<!--            <th>FY Total</th>-->
+<!--          </tr>-->
+<!--        </thead>-->
+<!--        <tbody>-->
+<!--          @for (cat of g.categoryRollup; track cat.expenseCategory) {-->
+<!--            <tr>-->
+<!--              <td>{{ cat.expenseCategory }}</td>-->
+<!--              <td>{{ cat.q1 | number: '1.0-0' }}</td>-->
+<!--              <td>{{ cat.q2 | number: '1.0-0' }}</td>-->
+<!--              <td>{{ cat.q3 | number: '1.0-0' }}</td>-->
+<!--              <td>{{ cat.q4 | number: '1.0-0' }}</td>-->
+<!--              <td>{{ cat.h1 | number: '1.0-0' }}</td>-->
+<!--              <td>{{ cat.h2 | number: '1.0-0' }}</td>-->
+<!--              <td>{{ cat.fiscalYearTotal | number: '1.0-0' }}</td>-->
+<!--            </tr>-->
+<!--          }-->
+<!--          @if (grandTotals(); as t) {-->
+<!--            <tr class="grand-total-row">-->
+<!--              <td>Total Admin Expense</td>-->
+<!--              <td>{{ t.q1 | number: '1.0-0' }}</td>-->
+<!--              <td>{{ t.q2 | number: '1.0-0' }}</td>-->
+<!--              <td>{{ t.q3 | number: '1.0-0' }}</td>-->
+<!--              <td>{{ t.q4 | number: '1.0-0' }}</td>-->
+<!--              <td>{{ t.h1 | number: '1.0-0' }}</td>-->
+<!--              <td>{{ t.h2 | number: '1.0-0' }}</td>-->
+<!--              <td>{{ t.fy | number: '1.0-0' }}</td>-->
+<!--            </tr>-->
+<!--          }-->
+<!--        </tbody>-->
+<!--      </table>-->
+<!--    </section>-->
+  }
+</div>

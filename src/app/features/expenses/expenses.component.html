@@ -1,0 +1,176 @@
+<div class="expenses-page">
+  <div class="page-header">
+    <h1>Expenses</h1>
+    <p class="header-subtitle">Record store spend and track it against budget in real time</p>
+  </div>
+
+  <section class="form-card card">
+    <h2>Record New Expense</h2>
+    <form (ngSubmit)="submit()">
+      <div class="form-row">
+        <label>
+          Store
+          <select [(ngModel)]="form.storeId" (ngModelChange)="onStoreChange()" name="storeId" required>
+            @for (store of stores(); track store.id) {
+              <option [value]="store.id">{{ store.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Category
+          <select [(ngModel)]="form.categoryId" name="categoryId" required>
+            @for (category of categories(); track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Date
+          <input type="date" [(ngModel)]="form.date" name="date" required />
+        </label>
+        <label>
+          Amount (AED)
+          <input type="number" [(ngModel)]="form.amount" name="amount" min="0.01" step="0.01" required />
+        </label>
+      </div>
+      <div class="form-row">
+        <label class="full-width">
+          Description
+          <input type="text" [(ngModel)]="form.description" name="description" required placeholder="e.g. Store staff overtime" />
+        </label>
+        <label>
+          Budget Line Item (optional)
+          <select [(ngModel)]="form.lineItemId" name="lineItemId">
+            <option [ngValue]="null">None</option>
+            @for (li of lineItems(); track li.id) {
+              <option [ngValue]="li.id">{{ li.glCode }} - {{ li.description }}</option>
+            }
+          </select>
+        </label>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="submitting()">
+        {{ submitting() ? 'Submitting...' : 'Submit Expense' }}
+      </button>
+    </form>
+  </section>
+
+  <section class="bulk-upload-card card">
+    <div class="bulk-upload-row">
+      <div>
+        <h3>Bulk Upload Expenses</h3>
+        <p class="hint">
+          Upload a CSV (Date, Store, Category, Line Item GL Code, Description, Amount) - each row is validated and
+          run through the same approval check as a single expense.
+        </p>
+      </div>
+      <div class="bulk-upload-actions">
+        <button class="btn-secondary" (click)="downloadUploadTemplate()">Download Template</button>
+        <label class="btn-primary file-upload-btn" [class.disabled]="bulkUploading()">
+          {{ bulkUploading() ? 'Uploading...' : 'Upload CSV' }}
+          <input type="file" accept=".csv" (change)="onBulkFileSelected($event)" [disabled]="bulkUploading()" hidden />
+        </label>
+      </div>
+    </div>
+  </section>
+
+  <section class="list-card card">
+    <div class="section-heading list-toolbar">
+      <div>
+        <h3>Recent Expenses</h3>
+        <p class="filtered-total">
+          {{ filteredExpenses().length }} expense{{ filteredExpenses().length === 1 ? '' : 's' }} &middot;
+          Total {{ filteredTotal() | number: '1.2-2' }} AED
+        </p>
+      </div>
+      <div class="toolbar-actions">
+        <select
+          class="status-filter"
+          [ngModel]="filterStoreId()"
+          (ngModelChange)="onFilterStoreChange($event)"
+          name="storeFilter">
+          <option [ngValue]="null">All stores</option>
+          @for (store of stores(); track store.id) {
+            <option [ngValue]="store.id">{{ store.name }}</option>
+          }
+        </select>
+        <select class="status-filter" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)" name="statusFilter">
+          <option value="All">All statuses</option>
+          <option value="Approved">Approved</option>
+          <option value="PendingLevel1Approval">Pending: Store Manager</option>
+          <option value="PendingLevel2Approval">Pending: Regional Manager</option>
+          <option value="Rejected">Rejected</option>
+        </select>
+        <input
+          type="date"
+          class="status-filter"
+          [ngModel]="dateFrom()"
+          (ngModelChange)="dateFrom.set($event)"
+          name="dateFrom"
+          title="From date" />
+        <input
+          type="date"
+          class="status-filter"
+          [ngModel]="dateTo()"
+          (ngModelChange)="dateTo.set($event)"
+          name="dateTo"
+          title="To date" />
+        <select
+          class="status-filter"
+          [ngModel]="glCodeFilter()"
+          (ngModelChange)="glCodeFilter.set($event)"
+          name="glCodeFilter">
+          <option value="All">All GL codes</option>
+          @for (code of availableGlCodes(); track code) {
+            <option [value]="code">{{ code }}</option>
+          }
+        </select>
+        @if (filterStoreId() || filterYear || filterMonth || dateFrom() || dateTo() || glCodeFilter() !== 'All') {
+          <button class="btn-secondary" (click)="clearFilters()">Clear filters</button>
+        }
+        <button class="btn-secondary" (click)="downloadCsv()">Download CSV</button>
+      </div>
+    </div>
+    @if (loading()) {
+      <p class="hint" style="padding: 0 20px 16px;">Loading...</p>
+    }
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Store</th>
+            <th>Category</th>
+            <th>GL Code</th>
+            <th>Description</th>
+            <th>Amount (AED)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (expense of filteredExpenses(); track expense.id) {
+            <tr>
+              <td>{{ expense.date }}</td>
+              <td class="store-name-cell">
+                <app-store-icon [name]="expense.storeName"></app-store-icon>
+                <span>{{ expense.storeName }}</span>
+              </td>
+              <td class="category-cell">
+                <app-category-icon [name]="expense.categoryName"></app-category-icon>
+                {{ expense.categoryName }}
+              </td>
+              <td>{{ expense.glCode ?? '-' }}</td>
+              <td>{{ expense.description }}</td>
+              <td>{{ expense.amount | number: '1.2-2' }}</td>
+              <td><span class="badge" [class]="statusClass(expense.status)">{{ statusLabel(expense.status) }}</span></td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="hint" style="text-align: center; padding: 20px;">No expenses match this filter.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

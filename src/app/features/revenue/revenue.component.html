@@ -1,0 +1,178 @@
+<div class="revenue-page">
+  <div class="page-header">
+    <h1>Revenue</h1>
+    <p class="header-subtitle">Record store sales so earnings and profit stay up to date</p>
+  </div>
+
+  <section class="form-card card">
+    <h2>Record New Revenue</h2>
+    <form (ngSubmit)="submit()">
+      <div class="form-row">
+        <label>
+          Store
+          <select [(ngModel)]="form.storeId" name="storeId" required>
+            @for (store of stores(); track store.id) {
+              <option [value]="store.id">{{ store.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Product Category
+          <select [(ngModel)]="form.categoryId" name="categoryId" required>
+            @for (category of categories(); track category.id) {
+              <option [value]="category.id">{{ category.name }}</option>
+            }
+          </select>
+        </label>
+        <label>
+          Date
+          <input type="date" [(ngModel)]="form.date" name="date" required />
+        </label>
+        <label>
+          Amount (AED)
+          <input type="number" [(ngModel)]="form.amount" name="amount" min="0.01" step="0.01" required />
+        </label>
+      </div>
+      <label class="full-width">
+        Description (optional)
+        <input type="text" [(ngModel)]="form.description" name="description" placeholder="e.g. Weekend sales, TV promotion" />
+      </label>
+
+      <button type="submit" class="btn-primary" [disabled]="submitting()">
+        {{ submitting() ? 'Submitting...' : 'Record Revenue' }}
+      </button>
+    </form>
+  </section>
+
+  <section class="bulk-upload-card card">
+    <div class="bulk-upload-row">
+      <div>
+        <h3>Bulk Upload Revenue</h3>
+        <p class="hint">
+          Upload a CSV (Date, Store, Category, Description, Amount) - each row is validated and recorded the same
+          way as a single entry.
+        </p>
+      </div>
+      <div class="bulk-upload-actions">
+        <button class="btn-secondary" (click)="downloadUploadTemplate()">Download Template</button>
+        <label class="btn-primary file-upload-btn" [class.disabled]="bulkUploading()">
+          {{ bulkUploading() ? 'Uploading...' : 'Upload CSV' }}
+          <input type="file" accept=".csv" (change)="onBulkFileSelected($event)" [disabled]="bulkUploading()" hidden />
+        </label>
+      </div>
+    </div>
+  </section>
+
+  @if (monthlyBreakdown().length > 1) {
+    <section class="list-card card">
+      <div class="section-heading">
+        <h3>Monthly Breakdown &amp; Growth</h3>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Total (AED)</th>
+              <th>Growth vs Previous Month</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (m of monthlyBreakdown(); track m.key) {
+              <tr>
+                <td>{{ m.key }}</td>
+                <td>{{ m.total | number: '1.2-2' }}</td>
+                <td [class.negative]="(m.growthPct ?? 0) < 0">
+                  @if (m.growthPct === null) {
+                    <span class="hint">&mdash;</span>
+                  } @else {
+                    {{ m.growthPct >= 0 ? '▲' : '▼' }} {{ (m.growthPct < 0 ? -m.growthPct : m.growthPct) | number: '1.1-1' }}%
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+
+  <section class="list-card card">
+    <div class="section-heading list-toolbar">
+      <div>
+        <h3>Recent Revenue</h3>
+        <p class="filtered-total">
+          {{ filteredRevenues().length }} revenue{{ filteredRevenues().length === 1 ? '' : 's' }} &middot;
+          Total {{ filteredTotal() | number: '1.2-2' }} AED
+        </p>
+      </div>
+      <div class="toolbar-actions">
+        <select
+          class="status-filter"
+          [ngModel]="filterStoreId()"
+          (ngModelChange)="onFilterStoreChange($event)"
+          name="storeFilter">
+          <option [ngValue]="null">All stores</option>
+          @for (store of stores(); track store.id) {
+            <option [ngValue]="store.id">{{ store.name }}</option>
+          }
+        </select>
+        <input
+          type="date"
+          class="status-filter"
+          [ngModel]="dateFrom()"
+          (ngModelChange)="dateFrom.set($event)"
+          name="dateFrom"
+          title="From date" />
+        <input
+          type="date"
+          class="status-filter"
+          [ngModel]="dateTo()"
+          (ngModelChange)="dateTo.set($event)"
+          name="dateTo"
+          title="To date" />
+        @if (filterStoreId() || filterYear || filterMonth || dateFrom() || dateTo()) {
+          <button class="btn-secondary" (click)="clearFilters()">Clear filters</button>
+        }
+        <button class="btn-secondary" (click)="downloadCsv()">Download CSV</button>
+      </div>
+    </div>
+    @if (loading()) {
+      <p class="hint" style="padding: 0 20px 16px;">Loading...</p>
+    }
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Store</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Amount (AED)</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (revenue of filteredRevenues(); track revenue.id) {
+            <tr>
+              <td>{{ revenue.date }}</td>
+              <td class="store-name-cell">
+                <app-store-icon [name]="revenue.storeName"></app-store-icon>
+                <span>{{ revenue.storeName }}</span>
+              </td>
+              <td class="category-cell">
+                <app-category-icon [name]="revenue.categoryName"></app-category-icon>
+                {{ revenue.categoryName }}
+              </td>
+              <td>{{ revenue.description || '—' }}</td>
+              <td>{{ revenue.amount | number: '1.2-2' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" class="hint" style="text-align: center; padding: 20px;">No revenue entries match this filter.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

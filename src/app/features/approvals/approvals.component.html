@@ -1,0 +1,97 @@
+<div class="approvals-page">
+  <div class="page-header">
+    <div>
+      <h1>Pending Approvals</h1>
+      <p class="header-subtitle">Expense overages and discount requests waiting on your decision</p>
+    </div>
+    <div class="header-actions">
+      <select
+        class="status-filter"
+        [ngModel]="storeId"
+        (ngModelChange)="onFilterStoreChange($event)"
+        name="storeFilter">
+        <option [ngValue]="null">All stores</option>
+        @for (store of stores(); track store.id) {
+          <option [ngValue]="store.id">{{ store.name }}</option>
+        }
+      </select>
+      <select class="status-filter" [ngModel]="levelFilter()" (ngModelChange)="levelFilter.set($event)" name="levelFilter">
+        <option [ngValue]="'All'">All levels</option>
+        <option [ngValue]="1">Level 1 - Store Manager</option>
+        <option [ngValue]="2">Level 2 - Regional Manager</option>
+      </select>
+      @if (storeId) {
+        <button class="btn-secondary" (click)="clearStoreFilter()">Clear store filter</button>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <p class="hint">Loading...</p>
+  }
+  @if (!loading() && filteredApprovals().length === 0) {
+    <div class="card">
+      <app-empty-state title="All caught up" subtitle="No pending approvals right now."></app-empty-state>
+    </div>
+  }
+
+  <div class="approval-list">
+    @for (approval of filteredApprovals(); track rowKey(approval)) {
+      <div class="approval-card card">
+        <div class="approval-main">
+          <div class="approval-title">
+            @if (approval.type === 'Expense') {
+              <app-category-icon [name]="approval.categoryName ?? ''"></app-category-icon>
+            } @else if (approval.type === 'Discount') {
+              <span class="type-chip discount">% Discount</span>
+            } @else {
+              <span class="type-chip forecast">Forecast Revision</span>
+            }
+            <span class="level-badge">{{ levelLabel(approval.level) }}</span>
+            <span class="store-name">{{ approval.storeName }}</span>
+          </div>
+          @if (approval.type === 'Expense') {
+            <p class="description">{{ approval.description }} &mdash; {{ approval.categoryName }}</p>
+          } @else if (approval.type === 'Discount') {
+            <p class="description">
+              {{ approval.customerName }} &mdash; requesting {{ approval.requestedDiscountPercent }}% discount
+            </p>
+          } @else {
+            <p class="description">
+              {{ approval.glCode }} - {{ approval.description }} ({{ approval.date | date: 'MMM yyyy' }}) &mdash;
+              proposed {{ approval.amount | number: '1.0-0' }} AED (was {{ approval.previousAmount | number: '1.0-0' }} AED)
+            </p>
+          }
+          <p class="meta">
+            <app-avatar [name]="approval.approverName ?? ''" [size]="20"></app-avatar>
+            <span>{{ approval.date }} &middot; {{ approval.approverName }}</span>
+          </p>
+        </div>
+        <div class="approval-amount">
+          {{ approval.amount | number: '1.2-2' }} AED
+        </div>
+        <div class="approval-actions">
+          <input
+            type="text"
+            placeholder="Comments (optional)"
+            [(ngModel)]="comments[rowKey(approval)]"
+            [name]="'comments-' + rowKey(approval)" />
+          <div class="buttons">
+            <button
+              class="btn-primary"
+              (click)="decide(approval, true)"
+              [disabled]="actingOnKey() === rowKey(approval)">
+              Approve
+            </button>
+            <button
+              class="btn-danger"
+              (click)="decide(approval, false)"
+              [disabled]="actingOnKey() === rowKey(approval)">
+              Reject
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

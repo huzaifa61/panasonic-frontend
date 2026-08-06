@@ -1,0 +1,152 @@
+<div class="store-management-page">
+  <div class="page-header">
+    <div>
+      <h1>Store Management</h1>
+      <p class="header-subtitle">Add stores and manage budget, target margin, and workforce planning</p>
+    </div>
+    <div class="header-actions">
+      <app-period-picker
+        [year]="year"
+        [month]="month"
+        (yearChange)="year = $event"
+        (monthChange)="month = $event"
+        (periodChange)="onPeriodChange()">
+      </app-period-picker>
+      <button class="btn-primary" (click)="showAddForm.set(!showAddForm())">
+        {{ showAddForm() ? 'Cancel' : '+ Add Store' }}
+      </button>
+    </div>
+  </div>
+
+  <section class="threshold-card card">
+    <h2>Global Approval Settings</h2>
+    <p class="threshold-hint">
+      Any single expense above this amount requires Store Manager + Regional Manager approval,
+      for every store, even if that store is still within its monthly budget.
+    </p>
+    <div class="threshold-row">
+      <label>
+        Expense Approval Threshold (AED)
+        <input type="number" [(ngModel)]="expenseApprovalThreshold" name="expenseApprovalThreshold" min="0" step="500" />
+      </label>
+      <button class="btn-primary" (click)="saveThreshold()" [disabled]="thresholdSaving()">
+        {{ thresholdSaving() ? 'Saving...' : 'Save' }}
+      </button>
+    </div>
+  </section>
+
+  @if (showAddForm()) {
+    <section class="form-card card">
+      <h2>Add New Store</h2>
+      <form (ngSubmit)="submitAddStore()">
+        <div class="form-row">
+          <label>
+            Store Name
+            <input type="text" [(ngModel)]="newStore.name" name="name" placeholder="e.g. Panasonic Al Ain Mall" required />
+          </label>
+          <label>
+            City
+            <input type="text" [(ngModel)]="newStore.city" name="city" placeholder="e.g. Al Ain" required />
+          </label>
+          <label>
+            Region
+            <input type="text" [(ngModel)]="newStore.regionName" name="regionName" placeholder="e.g. UAE East" required />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>
+            Store Manager Name
+            <input type="text" [(ngModel)]="newStore.storeManagerName" name="storeManagerName" required />
+          </label>
+          <label>
+            Regional Manager Name
+            <input type="text" [(ngModel)]="newStore.regionalManagerName" name="regionalManagerName" required />
+          </label>
+        </div>
+        <div class="form-row">
+          <label>
+            Store Manager Username
+            <input type="text" [(ngModel)]="newStore.managerUsername" name="managerUsername" placeholder="e.g. khalid.manager" required />
+          </label>
+          <label>
+            Store Manager Password
+            <input type="text" [(ngModel)]="newStore.managerPassword" name="managerPassword" placeholder="Login password" required />
+          </label>
+        </div>
+
+        <button type="submit" class="btn-primary" [disabled]="addSubmitting()">
+          {{ addSubmitting() ? 'Creating...' : 'Create Store' }}
+        </button>
+      </form>
+    </section>
+  }
+
+  @if (loading()) {
+    <p class="hint">Loading...</p>
+  }
+
+  <div class="store-rows">
+    @for (row of rows(); track row.id) {
+      <section class="store-row card">
+        <div class="row-header">
+          <app-store-icon [name]="row.name"></app-store-icon>
+          <div class="row-title-fields">
+            <input type="text" [(ngModel)]="row.name" [name]="'name-' + row.id" class="title-input" />
+            <div class="sub-fields">
+              <input type="text" [(ngModel)]="row.city" [name]="'city-' + row.id" placeholder="City" />
+              <input type="text" [(ngModel)]="row.regionName" [name]="'region-' + row.id" placeholder="Region" />
+              <input type="text" [(ngModel)]="row.storeManagerName" [name]="'sm-' + row.id" placeholder="Store Manager" />
+              <input type="text" [(ngModel)]="row.regionalManagerName" [name]="'rm-' + row.id" placeholder="Regional Manager" />
+            </div>
+          </div>
+          <button
+            class="btn-danger"
+            (click)="deleteStore(row)"
+            [disabled]="deletingId() === row.id">
+            {{ deletingId() === row.id ? 'Deleting...' : 'Delete' }}
+          </button>
+        </div>
+
+        <div class="row-fields">
+          <label>
+            Budget (AED)
+            <input type="number" [(ngModel)]="row.budget" [name]="'budget-' + row.id" min="0" step="100" />
+          </label>
+          <label>
+            Total Allocated Budget, FY{{ fiscalYear }} (AED)
+            <input
+              type="number"
+              [(ngModel)]="row.totalAllocatedBudget"
+              [name]="'allocbudget-' + row.id"
+              min="0"
+              step="1000"
+              title="The ceiling Budget Planning validates the sum of all GL-code line items against - independent of the monthly Budget above." />
+          </label>
+          <label>
+            Target Margin (Profit Target, AED)
+            <input type="number" [(ngModel)]="row.targetProfitAmount" [name]="'target-' + row.id" min="0" step="100" />
+          </label>
+          <label>
+            Forecasted Revenue (AED)
+            <input type="number" [(ngModel)]="row.forecastedRevenue" [name]="'fcrev-' + row.id" min="0" step="100" />
+          </label>
+          <label>
+            Forecasted Expense (AED)
+            <input type="number" [(ngModel)]="row.forecastedExpense" [name]="'fcexp-' + row.id" min="0" step="100" />
+          </label>
+          <label>
+            Current Headcount
+            <input type="number" [(ngModel)]="row.currentHeadcount" [name]="'chc-' + row.id" min="0" />
+          </label>
+          <label>
+            Forecasted Headcount Need
+            <input type="number" [(ngModel)]="row.forecastedHeadcountNeed" [name]="'fhc-' + row.id" min="0" />
+          </label>
+          <button class="btn-primary" (click)="saveRow(row)" [disabled]="row.saving">
+            {{ row.saving ? 'Saving...' : 'Save' }}
+          </button>
+        </div>
+      </section>
+    }
+  </div>
+</div>
