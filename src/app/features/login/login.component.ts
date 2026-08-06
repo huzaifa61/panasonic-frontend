@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -35,9 +36,15 @@ export class LoginComponent {
         this.submitting.set(false);
         this.router.navigate(['/dashboard']);
       },
-      error: () => {
+      error: (err: HttpErrorResponse) => {
         this.submitting.set(false);
-        this.toastService.error('Invalid username or password.');
+        if (err.status === 401) {
+          this.toastService.error('Invalid username or password.');
+        } else if (err.status === 0) {
+          this.toastService.error('Could not reach the server - it may be blocked (CORS) or unreachable. Check the browser console for details.');
+        } else {
+          this.toastService.error(`Login failed (HTTP ${err.status}). Check the browser console for details.`);
+        }
       }
     });
   }
