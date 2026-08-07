@@ -8,13 +8,14 @@ import { StoreManagementService } from '../../core/services/store-management.ser
 import { ToastService } from '../../core/services/toast.service';
 import { Store } from '../../core/models/store.model';
 import { GlobalPlanningCellSave, GlobalPlanningMonthCell, GlobalPlanningStore } from '../../core/models/global-planning.model';
+import { LoadingIndicatorComponent } from '../../shared/loading/loading-indicator.component';
 
 const MONTH_LABELS = ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
 
 @Component({
   selector: 'app-global-planning',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LoadingIndicatorComponent],
   templateUrl: './global-planning.component.html',
   styleUrl: './global-planning.component.scss'
 })

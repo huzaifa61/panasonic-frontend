@@ -83,11 +83,20 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  max-width: 100%;
+  overflow-x: auto;
+  padding-bottom: 2px;
 }
 
 .status-filter {
   padding: 7px 10px;
   font-size: 13px;
+  flex-shrink: 0;
+}
+
+.toolbar-actions .btn-secondary {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .form-row {
@@ -157,8 +166,9 @@ label.full-width {
 .bulk-upload-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
-  flex-shrink: 0;
+  max-width: 100%;
 }
 
 // Overrides the page-wide bare `label` rule (flex-column, uppercase, faint color)

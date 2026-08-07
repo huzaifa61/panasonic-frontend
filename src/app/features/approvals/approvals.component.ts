@@ -10,13 +10,14 @@ import { Store } from '../../core/models/store.model';
 import { CategoryIconComponent } from '../../shared/icons/category-icon.component';
 import { AvatarComponent } from '../../shared/illustrations/avatar.component';
 import { EmptyStateComponent } from '../../shared/illustrations/empty-state.component';
+import { LoadingIndicatorComponent } from '../../shared/loading/loading-indicator.component';
 
 type LevelFilter = 'All' | 1 | 2;
 
 @Component({
   selector: 'app-approvals',
   standalone: true,
-  imports: [CommonModule, FormsModule, CategoryIconComponent, AvatarComponent, EmptyStateComponent],
+  imports: [CommonModule, FormsModule, CategoryIconComponent, AvatarComponent, EmptyStateComponent, LoadingIndicatorComponent],
   templateUrl: './approvals.component.html',
   styleUrl: './approvals.component.scss'
 })

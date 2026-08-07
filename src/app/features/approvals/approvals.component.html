@@ -27,7 +27,7 @@
   </div>
 
   @if (loading()) {
-    <p class="hint">Loading...</p>
+    <app-loading-indicator />
   }
   @if (!loading() && filteredApprovals().length === 0) {
     <div class="card">

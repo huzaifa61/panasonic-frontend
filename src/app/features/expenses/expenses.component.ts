@@ -9,6 +9,7 @@ import { ApplianceCategory, Store } from '../../core/models/store.model';
 import { BulkExpenseRow, Expense, ExpenseStatus } from '../../core/models/expense.model';
 import { CategoryIconComponent } from '../../shared/icons/category-icon.component';
 import { StoreIconComponent } from '../../shared/illustrations/store-icon.component';
+import { LoadingIndicatorComponent } from '../../shared/loading/loading-indicator.component';
 import { downloadCsv } from '../../shared/utils/csv-export.util';
 import { parseCsv } from '../../shared/utils/csv-import.util';
 import { ToastService } from '../../core/services/toast.service';
@@ -24,7 +25,7 @@ type StatusFilter = 'All' | ExpenseStatus;
 @Component({
   selector: 'app-expenses',
   standalone: true,
-  imports: [CommonModule, FormsModule, CategoryIconComponent, StoreIconComponent],
+  imports: [CommonModule, FormsModule, CategoryIconComponent, StoreIconComponent, LoadingIndicatorComponent],
   templateUrl: './expenses.component.html',
   styleUrl: './expenses.component.scss'
 })

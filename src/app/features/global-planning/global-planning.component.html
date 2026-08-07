@@ -30,7 +30,7 @@
   </div>
 
   @if (loading()) {
-    <p class="hint">Loading...</p>
+    <app-loading-indicator />
   }
 
   @for (store of storesGrid(); track store.storeId) {

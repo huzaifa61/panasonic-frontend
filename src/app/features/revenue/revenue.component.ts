@@ -8,6 +8,7 @@ import { ApplianceCategory, Store } from '../../core/models/store.model';
 import { BulkRevenueRow, Revenue } from '../../core/models/revenue.model';
 import { StoreIconComponent } from '../../shared/illustrations/store-icon.component';
 import { CategoryIconComponent } from '../../shared/icons/category-icon.component';
+import { LoadingIndicatorComponent } from '../../shared/loading/loading-indicator.component';
 import { downloadCsv } from '../../shared/utils/csv-export.util';
 import { parseCsv } from '../../shared/utils/csv-import.util';
 import { ToastService } from '../../core/services/toast.service';
@@ -15,7 +16,7 @@ import { ToastService } from '../../core/services/toast.service';
 @Component({
   selector: 'app-revenue',
   standalone: true,
-  imports: [CommonModule, FormsModule, StoreIconComponent, CategoryIconComponent],
+  imports: [CommonModule, FormsModule, StoreIconComponent, CategoryIconComponent, LoadingIndicatorComponent],
   templateUrl: './revenue.component.html',
   styleUrl: './revenue.component.scss'
 })

@@ -7,11 +7,12 @@ import { ToastService } from '../../core/services/toast.service';
 import { Store } from '../../core/models/store.model';
 import { BudgetCellSave, StoreBudgetGrid, UpsertLineItemRequest } from '../../core/models/budget-planning.model';
 import { BudgetLineItemGridComponent } from './budget-line-item-grid.component';
+import { LoadingIndicatorComponent } from '../../shared/loading/loading-indicator.component';
 
 @Component({
   selector: 'app-budget-planning',
   standalone: true,
-  imports: [CommonModule, FormsModule, BudgetLineItemGridComponent],
+  imports: [CommonModule, FormsModule, BudgetLineItemGridComponent, LoadingIndicatorComponent],
   templateUrl: './budget-planning.component.html',
   styleUrl: './budget-planning.component.scss'
 })

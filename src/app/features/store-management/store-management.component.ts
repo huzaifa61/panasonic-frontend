@@ -10,6 +10,7 @@ import { ApprovalSettingsService } from '../../core/services/approval-settings.s
 import { StoreIconComponent } from '../../shared/illustrations/store-icon.component';
 import { ToastService } from '../../core/services/toast.service';
 import { PeriodPickerComponent } from '../../shared/period-picker/period-picker.component';
+import { LoadingIndicatorComponent } from '../../shared/loading/loading-indicator.component';
 
 interface ManagedStoreRow {
   id: number;
@@ -31,7 +32,7 @@ interface ManagedStoreRow {
 @Component({
   selector: 'app-store-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, StoreIconComponent, PeriodPickerComponent],
+  imports: [CommonModule, FormsModule, StoreIconComponent, PeriodPickerComponent, LoadingIndicatorComponent],
   templateUrl: './store-management.component.html',
   styleUrl: './store-management.component.scss'
 })
